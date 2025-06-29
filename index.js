@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 let cachedOwner = null;
+const greetedUsers = new Set();
 
 const {
   Client,
@@ -12,6 +13,9 @@ const {
   ButtonStyle,
   Events
 } = require('discord.js');
+
+const { log } = require('./logger');
+const fs = require('fs');
 
 const client = new Client({
   intents: [
@@ -25,7 +29,8 @@ const client = new Client({
 });
 
 const NEW_ROLE_NAME = '🔰 New Members';
-const OWNER_ID = '1236181129556525117'; // ← ID بتاعك هنا يا عمر
+const OWNER_ID = '1236181129556525117';
+
 const roleKeywords = {
   '🛠️ Developers': [
     'برمج', 'برمجة', 'مطور', 'كود', 'كودينج', 'سكربت', 'backend', 'frontend', 'fullstack',
@@ -34,29 +39,24 @@ const roleKeywords = {
     'php', 'laravel', 'node', 'express', 'django', 'python', 'java', 'c#', 'c++', 'sql', 'nosql',
     'firebase', 'mongodb', 'api', 'oop', 'algorithms', 'structure', 'logic'
   ],
-
   '🎨 2D Artists': [
-  '2d', 'pixel', 'بيكسل', 'aseprite', 'krita', 'رسام', 'ارسم', 'رسم', 'sprites',
-  'فنان 2d', 'شخصيات 2d', 'واجهة', 'concept', 'illustration', 'drawing', 'لوحة', 'لوحات'
-],
-
-'🌀 3D Artists': [
-  '3d', 'blender', 'maya', 'substance', 'zbrush', 'مجسمات', 'نحت', 'فنان 3d',
-  'شخصيات 3d', 'نموذج', 'موديل', 'uv', 'ريج', 'modeling', 'sculpt', 'texturing'
-],
-
-'📽️ Animators': [
-  'تحريك', 'أنيميشن', 'animation', 'frame by frame', 'bones', 'skeletal',
-  'dragonbones', 'حركة', 'animate', 'متحرك', 'character animation', 'توقيت', 'تايمينج'
-],
-
+    '2d', 'pixel', 'بيكسل', 'aseprite', 'krita', 'رسام', 'ارسم', 'رسم', 'sprites',
+    'فنان 2d', 'شخصيات 2d', 'واجهة', 'concept', 'illustration', 'drawing', 'لوحة', 'لوحات'
+  ],
+  '🌀 3D Artists': [
+    '3d', 'blender', 'maya', 'substance', 'zbrush', 'مجسمات', 'نحت', 'فنان 3d',
+    'شخصيات 3d', 'نموذج', 'موديل', 'uv', 'ريج', 'modeling', 'sculpt', 'texturing'
+  ],
+  '📽️ Animators': [
+    'تحريك', 'أنيميشن', 'animation', 'frame by frame', 'bones', 'skeletal',
+    'dragonbones', 'حركة', 'animate', 'متحرك', 'character animation', 'توقيت', 'تايمينج'
+  ],
   '🧠 Designers': [
     'مصمم', 'تصميم', 'فكرة', 'افكار', 'مراحل', 'level design', 'game design', 'game designer',
     'ميكانيك', 'mechanics', 'ux', 'ui', 'ux/ui', 'واجهة', 'واجهات', 'menus', 'flow', 'narrative',
     'story', 'player experience', 'balance', 'difficulty', 'tutorial', 'tutorial design', 'figma',
     'wireframe', 'mockup', 'gameplay', 'usability'
   ],
-
   '🧠 AI Team': [
     'machine learning', 'ml', 'deep learning', 'تدريب نماذج',
     'vision', 'nlp', 'chatbot', 'model', 'dataset', 'خوارزميات',
@@ -75,18 +75,21 @@ const questions = [
 ];
 
 client.once('ready', async () => {
-  console.log(`✅ البوت شغال: ${client.user.tag}`);
+  await log(`✅ البوت شغال: ${client.user.tag}`, client);
   try {
     cachedOwner = await client.users.fetch(OWNER_ID);
-    console.log(`✅ تم تخزين صاحب السيرفر: ${cachedOwner.tag}`);
+    await log(`✅ تم تخزين صاحب السيرفر: ${cachedOwner.tag}`, client);
   } catch (err) {
-    console.error("❌ فشل في تحميل بيانات الأونر:", err);
+    await log("❌ فشل في تحميل بيانات الأونر: " + err.message, client);
   }
 });
 
+client.on('guildMemberAdd', async member => { 
+ if (greetedUsers.has(member.id)) return;
+  greetedUsers.add(member.id);
 
-client.on('guildMemberAdd', async member => {
   try {
+    await log(`🆕 انضم عضو جديد: ${member.user.tag}`, client);
     const role = member.guild.roles.cache.find(r => r.name === NEW_ROLE_NAME);
     if (role) await member.roles.add(role);
 
@@ -117,16 +120,10 @@ client.on('guildMemberAdd', async member => {
         .setTimestamp();
 
       await introChannel.send({ embeds: [embed] });
+      await log(`📩 تم إرسال معلومات العضو ${member.user.tag} إلى قناة التعريف`, client);
 
-      // التعديل هنا: لو ملقاش كلمة مفتاحية في الدور يبص في كل الإجابات
       let searchText = (answers[2] || '').toLowerCase();
-
-      // نشوف لو فيه كلمة مفتاحية في الدور
-      const hasMatchInRole = Object.values(roleKeywords).some(keywords =>
-        keywords.some(k => searchText.includes(k))
-      );
-
-      // لو مفيش كلمة في الدور، يبص في كل الإجابات مع بعض
+      const hasMatchInRole = Object.values(roleKeywords).some(keywords => keywords.some(k => searchText.includes(k)));
       if (!hasMatchInRole) {
         searchText = answers.join(' ').toLowerCase();
       }
@@ -137,6 +134,7 @@ client.on('guildMemberAdd', async member => {
 
       if (matchedRoles.length === 0) {
         await member.send("❌ ماقدرناش نحدد دور واضح، هنراجع بياناتك يدويًا 🔍");
+        await log(`❌ معرفناش نحدد دور لـ ${member.user.tag}`, client);
         return;
       }
 
@@ -149,19 +147,14 @@ client.on('guildMemberAdd', async member => {
       );
 
       const actionRow = new ActionRowBuilder().addComponents(buttons.slice(0, 5));
-      await member.send({
-        content: "🎯 اختر الرولات اللي شايفها مناسبة ليك (ممكن أكتر من واحدة):",
-        components: [actionRow]
-      });
+      await member.send({ content: "🎯 اختر الرولات اللي شايفها مناسبة ليك (ممكن أكتر من واحدة):", components: [actionRow] });
 
       const dmButtonCollector = dm.channel.createMessageComponentCollector({ time: 300000 });
 
       dmButtonCollector.on('collect', async interaction => {
         if (interaction.user.id !== member.id) return;
-
         const roleName = interaction.customId.replace("select_", "");
         if (!selected.includes(roleName)) selected.push(roleName);
-
         await interaction.reply({ content: `✅ تم اختيار: ${roleName}`, ephemeral: true });
       });
 
@@ -172,8 +165,7 @@ client.on('guildMemberAdd', async member => {
         }
 
         const owner = cachedOwner;
-if (!owner) return console.error("❌ الأونر مش محفوظ.");
-
+        if (!owner) return;
 
         const approvalEmbed = new EmbedBuilder()
           .setTitle("📥 طلب انضمام جديد")
@@ -187,17 +179,17 @@ if (!owner) return console.error("❌ الأونر مش محفوظ.");
         );
 
         await owner.send({ embeds: [approvalEmbed], components: [approveRow] });
-      }); // ← القوس ده اللي كان ناقص
+        await log(`📨 بعتنا الطلب للأونر علشان يوافق على ${member.user.tag}`, client);
+      });
     });
 
   } catch (err) {
-    console.error("❌ حصلت مشكلة:", err);
+    await log("❌ حصلت مشكلة: " + err.message, client);
   }
 });
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isButton()) return;
-
   const [action, targetId] = interaction.customId.split('_');
   const guild = client.guilds.cache.get(process.env.GUILD_ID);
   if (!guild) return;
@@ -207,19 +199,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
   if (action === 'approve') {
     const guildMember = await guild.members.fetch(member.id);
-
-    // نستخرج الرولات من الـ Embed
-    const roleNames = interaction.message.embeds[0].description
-      .split('\n')
-      .map(line => line.replace('• ', '').trim());
-
-    // نضيف الرولات
+    const roleNames = interaction.message.embeds[0].description.split('\n').map(line => line.replace('• ', '').trim());
     for (const roleName of roleNames) {
       const role = guild.roles.cache.find(r => r.name === roleName);
       if (role) await guildMember.roles.add(role);
     }
 
-    // نشيل رول New Members لو موجود
     const newMemberRole = guild.roles.cache.find(r => r.name === NEW_ROLE_NAME);
     if (newMemberRole && guildMember.roles.cache.has(newMemberRole.id)) {
       await guildMember.roles.remove(newMemberRole);
@@ -227,9 +212,11 @@ client.on(Events.InteractionCreate, async interaction => {
 
     await interaction.reply({ content: `✅ تم تعيين الرولات لـ ${member.user.tag}`, ephemeral: true });
     await member.send("🎉 تم إعتمادك و تعيين الرولات المطلوبة. مرحب بيك!");
+    await log(`✅ وافقنا على ${member.user.tag} وأضفنا الرولات: ${roleNames.join(', ')}`, client);
   } else if (action === 'reject') {
     await interaction.reply({ content: "❌ تم رفض الطلب.", ephemeral: true });
     await member.send("❌ تم رفض طلب الرولات. ممكن يتراجع لاحقًا حسب رأي الإدارة.");
+    await log(`❌ رفضنا ${member.user.tag}`, client);
   }
 });
 
