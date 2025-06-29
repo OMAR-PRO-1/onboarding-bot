@@ -1,3 +1,11 @@
+const fs = require('fs');
+const path = './.lock';
+
+if (fs.existsSync(path)) {
+  console.error('❌ البوت شغال بالفعل!');
+  process.exit(1);
+}
+fs.writeFileSync(path, 'running');
 require('dotenv').config();
 
 let cachedOwner = null;
