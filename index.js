@@ -175,29 +175,32 @@ client.on('guildMemberAdd', async member => {
         await interaction.reply({ content: `✅ تم اختيار: ${roleName}`, ephemeral: true });
       });
 
-      let sentApproval = false;
-
+     let sentApproval = false;
 const sendApproval = async () => {
   if (sentApproval || selected.length === 0) return;
-
   sentApproval = true;
 
-  const owner = cachedOwner;
-  if (!owner) return console.error("❌ الأونر مش محفوظ.");
+  try {
+    const owner = cachedOwner;
+    if (!owner) throw new Error("❌ الأونر مش محفوظ.");
 
-  const approvalEmbed = new EmbedBuilder()
-    .setTitle("📥 طلب انضمام جديد")
-    .setDescription(`**${member.user.tag}** اختار الرولات:\n${selected.map(r => `• ${r}`).join('\n')}`)
-    .setColor(0x3498db)
-    .setTimestamp();
+    const approvalEmbed = new EmbedBuilder()
+      .setTitle("📥 طلب انضمام جديد")
+      .setDescription(`**${member.user.tag}** اختار الرولات:\n${selected.map(r => `• ${r}`).join('\n')}`)
+      .setColor(0x3498db)
+      .setTimestamp();
 
-  const approveRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`approve_${member.id}`).setLabel("✅ موافقة").setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId(`reject_${member.id}`).setLabel("❌ رفض").setStyle(ButtonStyle.Danger)
-  );
+    const approveRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId(`approve_${member.id}`).setLabel("✅ موافقة").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(`reject_${member.id}`).setLabel("❌ رفض").setStyle(ButtonStyle.Danger)
+    );
 
-  await owner.send({ embeds: [approvalEmbed], components: [approveRow] });
+    await owner.send({ embeds: [approvalEmbed], components: [approveRow] });
+  } catch (err) {
+    await log(`❌ فشل في إرسال الموافقة للأونر: ${err.message}`, client);
+  }
 };
+
 
 dmButtonCollector.on('collect', async interaction => {
   if (interaction.user.id !== member.id) return;
@@ -205,11 +208,25 @@ dmButtonCollector.on('collect', async interaction => {
   const roleName = interaction.customId.replace("select_", "");
   if (!selected.includes(roleName)) selected.push(roleName);
 
-  await interaction.reply({ content: `✅ تم اختيار: ${roleName}`, ephemeral: true });
+  try {
+    // ✅ احجز الرد قبل أي حاجة
+    await interaction.deferUpdate();
 
-  // 🧠 أول ما يختار أول واحدة، ابعت فورًا
-  await sendApproval();
+    // ✅ رد بعد الحجز
+    await interaction.followUp({
+      content: `✅ تم اختيار: ${roleName}`,
+      flags: 1 << 6 // خاص بالمستخدم
+    });
+
+    // 🧠 ابعت الموافقة للأونر لو أول مرة
+    await sendApproval();
+
+  } catch (err) {
+    console.error("❌ خطأ في التعامل مع الزر:", err);
+  }
 });
+
+
 
 dmButtonCollector.on('end', async () => {
   if (selected.length === 0) {
