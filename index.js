@@ -4,7 +4,11 @@ const express = require('express');
 const app = express();
 
 // ✅ Keep Alive server for Railway
-app.get('/', (req, res) => res.send('Bot is alive!'));
+
+app.get('/', (req, res) => {
+  res.send('Bot is alive!');
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('✅ Keep Alive server running!');
 });
