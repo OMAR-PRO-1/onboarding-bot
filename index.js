@@ -23,7 +23,6 @@ const {
 } = require('discord.js');
 
 const { log } = require('./logger');
-const fs = require('fs');
 
 const client = new Client({
   intents: [
