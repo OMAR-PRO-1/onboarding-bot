@@ -1,11 +1,17 @@
 const fs = require('fs');
-const path = './.lock';
+const os = require('os');
 
-if (fs.existsSync(path)) {
-  console.error('❌ البوت شغال بالفعل!');
+// ✅ تأكد إن البوت شغال من Railway فقط
+const isRailway = !!process.env.RAILWAY_ENVIRONMENT;
+
+if (!isRailway) {
+  console.error('❌ مينفعش تشغل البوت ده غير من Railway فقط!');
+  console.error(`📌 انت بتحاول تشغله من الجهاز: ${os.hostname()}`);
   process.exit(1);
 }
-fs.writeFileSync(path, 'running');
+
+console.log('✅ البوت شغال من Railway ✔️');
+
 require('dotenv').config();
 
 let cachedOwner = null;
