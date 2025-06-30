@@ -92,11 +92,12 @@ client.once('ready', async () => {
 });
 
 client.on('guildMemberAdd', async member => { 
- if (greetedUsers.has(member.id)) return;
+  if (greetedUsers.has(member.id)) return;
   greetedUsers.add(member.id);
 
   try {
     await log(`🆕 انضم عضو جديد: ${member.user.tag}`, client);
+
     const role = member.guild.roles.cache.find(r => r.name === NEW_ROLE_NAME);
     if (role) await member.roles.add(role);
 
@@ -211,8 +212,7 @@ dmButtonCollector.on('end', async () => {
   await sendApproval();
 });
 
-        await log(`📨 بعتنا الطلب للأونر علشان يوافق على ${member.user.tag}`, client);
-      });
+         await log(`📨 بعتنا الطلب للأونر علشان يوافق على ${member.user.tag}`, client);
     });
 
   } catch (err) {
