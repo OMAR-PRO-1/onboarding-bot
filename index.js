@@ -87,8 +87,12 @@ const questions = [
   "🔹 أي حاجة حابب تقولها؟"
 ];
 
+const os = require('os'); // اتأكد إنها موجودة فوق
+
 client.once('ready', async () => {
-  await log(`✅ البوت شغال: ${client.user.tag}`, client);
+  const hostname = os.hostname(); // 👈 ده اسم الجهاز أو السيرفر اللي شغّل البوت
+
+  await log(`✅ البوت شغال: ${client.user.tag} من ${hostname}`, client);
   try {
     cachedOwner = await client.users.fetch(OWNER_ID);
     await log(`✅ تم تخزين صاحب السيرفر: ${cachedOwner.tag}`, client);
@@ -96,6 +100,7 @@ client.once('ready', async () => {
     await log("❌ فشل في تحميل بيانات الأونر: " + err.message, client);
   }
 });
+
 
 client.on('guildMemberAdd', async member => { 
   if (greetedUsers.has(member.id)) return;
