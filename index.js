@@ -49,13 +49,42 @@ let cachedOwner = null;
 const greetedUsers = new Set();
 
 const roleKeywords = {
-  '🛠️ Developers': [...],
-  '🎨 2D Artists': [...],
-  '🌀 3D Artists': [...],
-  '📽️ Animators': [...],
-  '🧠 Designers': [...],
-  '🧠 AI Team': [...]
+  '🛠️ Developers': [
+    'برمج', 'برمجة', 'مطور', 'كود', 'كودينج', 'سكربت',
+    'backend', 'frontend', 'fullstack', 'ويب', 'web', 'موقع', 'مواقع',
+    'game dev', 'game developer', 'developer', 'unity', 'unreal', 'godot',
+    'html', 'css', 'js', 'javascript', 'typescript', 'ts',
+    'react', 'angular', 'vue', 'svelte',
+    'php', 'laravel', 'node', 'express', 'django',
+    'python', 'java', 'c#', 'c++', 'sql', 'nosql',
+    'firebase', 'mongodb', 'api', 'oop', 'algorithms', 'structure', 'logic'
+  ],
+  '🎨 2D Artists': [
+    '2d', 'pixel', 'بيكسل', 'aseprite', 'krita', 'رسام', 'ارسم', 'رسم', 'sprites',
+    'فنان 2d', 'شخصيات 2d', 'واجهة', 'concept', 'illustration', 'drawing', 'لوحة', 'لوحات'
+  ],
+  '🌀 3D Artists': [
+    '3d', 'blender', 'maya', 'substance', 'zbrush', 'مجسمات', 'نحت', 'فنان 3d',
+    'شخصيات 3d', 'نموذج', 'موديل', 'uv', 'ريج', 'modeling', 'sculpt', 'texturing'
+  ],
+  '📽️ Animators': [
+    'تحريك', 'أنيميشن', 'animation', 'frame by frame', 'bones', 'skeletal',
+    'dragonbones', 'حركة', 'animate', 'متحرك', 'character animation', 'توقيت', 'تايمينج'
+  ],
+  '🧠 Designers': [
+    'مصمم', 'تصميم', 'فكرة', 'افكار', 'مراحل', 'level design', 'game design', 'game designer',
+    'ميكانيك', 'mechanics', 'ux', 'ui', 'ux/ui', 'واجهة', 'واجهات', 'menus', 'flow', 'narrative',
+    'story', 'player experience', 'balance', 'difficulty', 'tutorial', 'tutorial design', 'figma',
+    'wireframe', 'mockup', 'gameplay', 'usability'
+  ],
+  '🧠 AI Team': [
+    'machine learning', 'ml', 'deep learning', 'تدريب نماذج',
+    'vision', 'nlp', 'chatbot', 'model', 'dataset', 'خوارزميات',
+    'reinforcement learning', 'tensorflow', 'pytorch', 'ذكاء حقيقي',
+    'ai team', 'neural network', 'ذكاء صناعي', 'ذكاء اصطناعي'
+  ]
 };
+
 
 const questions = [
   "🔹 اسمك؟",
