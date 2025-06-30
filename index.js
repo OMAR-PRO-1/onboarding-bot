@@ -166,27 +166,52 @@ client.on('guildMemberAdd', async member => {
         await interaction.reply({ content: `✅ تم اختيار: ${roleName}`, ephemeral: true });
       });
 
-      dmButtonCollector.on('end', async () => {
-        if (selected.length === 0) {
-          await member.send("⚠️ من فضلك اختار على الأقل رول واحد علشان نقدر نساعدك.");
-          return;
-        }
+      let sentApproval = false;
 
-        const owner = cachedOwner;
-        if (!owner) return;
+const sendApproval = async () => {
+  if (sentApproval || selected.length === 0) return;
 
-        const approvalEmbed = new EmbedBuilder()
-          .setTitle("📥 طلب انضمام جديد")
-          .setDescription(`**${member.user.tag}** اختار الرولات:\n${selected.map(r => `• ${r}`).join('\n')}`)
-          .setColor(0x3498db)
-          .setTimestamp();
+  sentApproval = true;
 
-        const approveRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId(`approve_${member.id}`).setLabel("✅ موافقة").setStyle(ButtonStyle.Success),
-          new ButtonBuilder().setCustomId(`reject_${member.id}`).setLabel("❌ رفض").setStyle(ButtonStyle.Danger)
-        );
+  const owner = cachedOwner;
+  if (!owner) return console.error("❌ الأونر مش محفوظ.");
 
-        await owner.send({ embeds: [approvalEmbed], components: [approveRow] });
+  const approvalEmbed = new EmbedBuilder()
+    .setTitle("📥 طلب انضمام جديد")
+    .setDescription(`**${member.user.tag}** اختار الرولات:\n${selected.map(r => `• ${r}`).join('\n')}`)
+    .setColor(0x3498db)
+    .setTimestamp();
+
+  const approveRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`approve_${member.id}`).setLabel("✅ موافقة").setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`reject_${member.id}`).setLabel("❌ رفض").setStyle(ButtonStyle.Danger)
+  );
+
+  await owner.send({ embeds: [approvalEmbed], components: [approveRow] });
+};
+
+dmButtonCollector.on('collect', async interaction => {
+  if (interaction.user.id !== member.id) return;
+
+  const roleName = interaction.customId.replace("select_", "");
+  if (!selected.includes(roleName)) selected.push(roleName);
+
+  await interaction.reply({ content: `✅ تم اختيار: ${roleName}`, ephemeral: true });
+
+  // 🧠 أول ما يختار أول واحدة، ابعت فورًا
+  await sendApproval();
+});
+
+dmButtonCollector.on('end', async () => {
+  if (selected.length === 0) {
+    await member.send("⚠️ من فضلك اختار على الأقل رول واحد علشان نقدر نساعدك.");
+    return;
+  }
+
+  // 👇 احتياطي لو مقدرش يبعت وقت الاختيار
+  await sendApproval();
+});
+
         await log(`📨 بعتنا الطلب للأونر علشان يوافق على ${member.user.tag}`, client);
       });
     });
