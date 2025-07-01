@@ -1,27 +1,12 @@
 const fs = require('fs');
 const os = require('os');
-const express = require('express');
-const app = express();
 
-// ✅ Keep Alive server for Railway
-
-app.get('/', (req, res) => {
-  res.send('Bot is alive!');
-});
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log('✅ Keep Alive server running!');
-});
-
-// ✅ Only allow Railway environment
-const isRailway = !!process.env.RAILWAY_ENVIRONMENT;
-if (!isRailway) {
-  console.error('❌ مينفعش تشغل البوت ده غير من Railway فقط!');
-  console.error(`📌 انت بتحاول تشغله من الجهاز: ${os.hostname()}`);
+// ✅ شرط أساسي: لازم يشتغل من Discloud بس
+const isDiscloud = !!process.env.DISCORD_TOKEN || !!process.env.TOKEN;
+if (!isDiscloud) {
+  console.error('❌ مينفعش تشغل البوت ده غير من Discloud فقط!');
   process.exit(1);
 }
-
-require('dotenv').config();
 
 const {
   Client,
