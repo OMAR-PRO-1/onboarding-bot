@@ -3,7 +3,7 @@ const path = require('path');
 
 const LOG_FILE = path.join(__dirname, 'bot-logs.txt');
 
-function log(client, message) {
+async function log(message, client) {
   const timestamp = new Date().toLocaleString();
   const finalMsg = `[${timestamp}] ${message}\n`;
 
@@ -15,10 +15,16 @@ function log(client, message) {
     if (err) console.error('❌ فشل في تسجيل اللوج:', err);
   });
 
-  // لو فيه تشانل لوج من env ابعته هناك
+  // ابعت في قناة اللوج لو متاحة
   if (client && process.env.LOG_CHANNEL_ID) {
     const channel = client.channels.cache.get(process.env.LOG_CHANNEL_ID);
-    if (channel) channel.send(`📝 ${message}`);
+    if (channel) {
+      try {
+        await channel.send(`📝 ${message}`);
+      } catch (err) {
+        console.error('⚠️ فشل في إرسال رسالة اللوج:', err.message);
+      }
+    }
   }
 }
 

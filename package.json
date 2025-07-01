@@ -1,7 +1,7 @@
 {
   "name": "onboarding-bot",
   "version": "1.0.0",
-  "description": "Auto onboarding Discord bot for Discloud",
+  "description": "Auto onboarding Discord bot for Railway",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
