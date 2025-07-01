@@ -1,12 +1,13 @@
 const fs = require('fs');
 const os = require('os');
 
-// ✅ شرط أساسي: لازم يشتغل من Discloud بس
-const isDiscloud = !!process.env.DISCORD_TOKEN || !!process.env.TOKEN;
-if (!isDiscloud) {
-  console.error('❌ مينفعش تشغل البوت ده غير من Discloud فقط!');
+// ✅ تأكد إن البوت شغال من Railway فقط
+const isRailway = !!process.env.RAILWAY_STATIC_URL;
+if (!isRailway) {
+  console.error('❌ مينفعش تشغل البوت ده غير من Railway فقط!');
   process.exit(1);
 }
+
 
 const {
   Client,
@@ -38,8 +39,8 @@ let cachedOwner = null;
 const greetedUsers = new Set();
 
 const roleKeywords = {
-  '🛠️ Developers': [
-    'برمج', 'برمجة', 'مطور', 'كود', 'كودينج', 'سكربت',
+  '🧰 Developers': [
+    'برمج', 'برمجة', 'مطوّر', 'كود', 'كودينج', 'سكريبت',
     'backend', 'frontend', 'fullstack', 'ويب', 'web', 'موقع', 'مواقع',
     'game dev', 'game developer', 'developer', 'unity', 'unreal', 'godot',
     'html', 'css', 'js', 'javascript', 'typescript', 'ts',
@@ -52,13 +53,13 @@ const roleKeywords = {
     '2d', 'pixel', 'بيكسل', 'aseprite', 'krita', 'رسام', 'ارسم', 'رسم', 'sprites',
     'فنان 2d', 'شخصيات 2d', 'واجهة', 'concept', 'illustration', 'drawing', 'لوحة', 'لوحات'
   ],
-  '🌀 3D Artists': [
+  '🌐 3D Artists': [
     '3d', 'blender', 'maya', 'substance', 'zbrush', 'مجسمات', 'نحت', 'فنان 3d',
     'شخصيات 3d', 'نموذج', 'موديل', 'uv', 'ريج', 'modeling', 'sculpt', 'texturing'
   ],
   '📽️ Animators': [
     'تحريك', 'أنيميشن', 'animation', 'frame by frame', 'bones', 'skeletal',
-    'dragonbones', 'حركة', 'animate', 'متحرك', 'character animation', 'توقيت', 'تايمينج'
+    'dragonbones', 'حركة', 'animate', 'متحرك', 'character animation', 'توقيت', 'تايمنج'
   ],
   '🧠 Designers': [
     'مصمم', 'تصميم', 'فكرة', 'افكار', 'مراحل', 'level design', 'game design', 'game designer',
@@ -74,14 +75,13 @@ const roleKeywords = {
   ]
 };
 
-
 const questions = [
-  "🔹 اسمك؟",
-  "🔹 منين؟",
-  "🔹 دورك في الفريق؟ (مصمم / مبرمج / فنان...؟)",
-  "🔹 مهاراتك؟",
-  "🔹 متاح كم ساعة بالأسبوع؟",
-  "🔹 أي حاجة حابب تقولها؟"
+  "📝 اسمك؟",
+  "📝 منين؟",
+  "📝 دورك في الفريق؟ (مصمم / مبرمج / فنان...؟)",
+  "📝 مهاراتك؟",
+  "📝 متاح كم ساعة بالأسبوع؟",
+  "📝 أي حاجة حابب تقولها؟"
 ];
 
 client.once('ready', async () => {
@@ -101,7 +101,7 @@ client.on('guildMemberAdd', async member => {
   greetedUsers.add(member.id);
 
   try {
-    await log(`🆕 انضم عضو جديد: ${member.user.tag}`, client);
+    await log(`📥 انضم عضو جديد: ${member.user.tag}`, client);
     const role = member.guild.roles.cache.find(r => r.name === NEW_ROLE_NAME);
     if (role) await member.roles.add(role);
 
@@ -119,20 +119,20 @@ client.on('guildMemberAdd', async member => {
       if (!introChannel) return;
 
       const embed = new EmbedBuilder()
-        .setTitle(`👤 عضو جديد: ${member.user.tag}`)
+        .setTitle(`🧑 عضو جديد: ${member.user.tag}`)
         .addFields(
-          { name: '🔹 الاسم', value: answers[0] || '---' },
-          { name: '🔹 منين؟', value: answers[1] || '---' },
-          { name: '🔹 الدور', value: answers[2] || '---' },
-          { name: '🔹 المهارات', value: answers[3] || '---' },
-          { name: '🔹 التوفر الأسبوعي', value: answers[4] || '---' },
-          { name: '🔹 إضافات؟', value: answers[5] || '---' }
+          { name: '📝 الاسم', value: answers[0] || '---' },
+          { name: '📝 منين؟', value: answers[1] || '---' },
+          { name: '📝 الدور', value: answers[2] || '---' },
+          { name: '📝 المهارات', value: answers[3] || '---' },
+          { name: '📝 التوفر الأسبوعي', value: answers[4] || '---' },
+          { name: '📝 إضافات؟', value: answers[5] || '---' }
         )
         .setColor(0x00FF00)
         .setTimestamp();
 
       await introChannel.send({ embeds: [embed] });
-      await log(`📩 تم إرسال معلومات العضو ${member.user.tag} إلى قناة التعريف`, client);
+      await log(`📨 تم إرسال معلومات العضو ${member.user.tag} إلى قناة التعريف`, client);
 
       let searchText = (answers[2] || '').toLowerCase();
       if (!Object.values(roleKeywords).some(keywords => keywords.some(k => searchText.includes(k)))) {
@@ -144,7 +144,7 @@ client.on('guildMemberAdd', async member => {
         .map(([role]) => role);
 
       if (!matchedRoles.length) {
-        await member.send("❌ ماقدرناش نحدد دور واضح، هنراجع بياناتك يدويًا 🔍");
+        await member.send("❌ مقدرناش نحدد دور واضح، هنراجع بياناتك يدويًا 🔍");
         await log(`❌ معرفناش نحدد دور لـ ${member.user.tag}`, client);
         return;
       }
@@ -155,7 +155,7 @@ client.on('guildMemberAdd', async member => {
       );
 
       const actionRow = new ActionRowBuilder().addComponents(buttons.slice(0, 5));
-      await member.send({ content: "🎯 اختر الرولات اللي شايفها مناسبة ليك:", components: [actionRow] });
+      await member.send({ content: "🎯 اختار الرولات اللي شايفها مناسبة ليك:", components: [actionRow] });
 
       const dmButtonCollector = dm.channel.createMessageComponentCollector({ time: 300000 });
 
@@ -231,7 +231,7 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     await interaction.reply({ content: `✅ تم تعيين الرولات لـ ${member.user.tag}`, ephemeral: true });
-    await member.send("🎉 تم إعتمادك و تعيين الرولات المطلوبة. مرحب بيك!");
+    await member.send("🎉 تم اعتمادك و تعيين الرولات المطلوبة. مرحب بيك!");
     await log(`✅ وافقنا على ${member.user.tag}`, client);
   } else if (action === 'reject') {
     await interaction.reply({ content: "❌ تم رفض الطلب.", ephemeral: true });
@@ -242,11 +242,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
 client.login(process.env.TOKEN);
 
-// ✅ التعامل مع أي أخطاء غير متوقعة
 process.on('unhandledRejection', err => {
   console.error('❌ Unhandled Promise:', err);
 });
-
 process.on('uncaughtException', err => {
   console.error('❌ Uncaught Exception:', err);
 });
